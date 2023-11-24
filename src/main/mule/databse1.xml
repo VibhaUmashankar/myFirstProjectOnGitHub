@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="8d08bdba-90fb-4b53-9df3-fb456d764db4" basePath="/emp-sapi" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<db:config name="Database_Config" doc:name="Database Config" doc:id="40007552-8e9e-4a75-b918-1888e1e316a8" >
+		<db:my-sql-connection host="localhost" port="3306" user="root" password="tiger" database="mulesoft" />
+	</db:config>
+	<flow name="databse1Flow" doc:id="7b3a52a1-830e-4a1a-bbd4-9b21407175eb" >
+		<http:listener doc:name="Listener" doc:id="ff04b3c5-eb15-40e3-9c08-a4eeba16ad6f" config-ref="HTTP_Listener_config" path="/add-employee"/>
+		<db:update doc:name="Update" doc:id="ac758a7c-4f8c-4328-b935-47ff7f5d89de" config-ref="Database_Config">
+			<db:sql ><![CDATA[update employee set emp_status=:emp_status where emp_id=:emp_id]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+	"emp_id":payload.id,
+	"emp_status":payload.status
+}]]]></db:input-parameters>
+		</db:update>
+		<ee:transform doc:name="Transform Message" doc:id="408a422d-91c7-4ebe-a6b4-5b186a78bad2" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/xml
+---
+{
+	"status":200,
+	"message":"Success"
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+</mule>
